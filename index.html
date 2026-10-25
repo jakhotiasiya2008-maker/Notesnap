@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+  <title>NoteSnap - Smart Revision Sheets & Flashcards</title>
+  <meta name="description" content="Turn messy lecture notes into compact revision sheets and active-recall flashcards. 100% client-side, zero backend, works offline." />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NoteSnap" />
+
+  <!-- Icons & Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- Typography: Outfit (Display) & Plus Jakarta Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <!-- Ambient Interactive Canvas Background -->
+  <canvas id="ambientCanvas" aria-hidden="true"></canvas>
+
+  <div class="app-shell">
+    <!-- Top Global App Header -->
+    <header class="app-header" role="banner">
+      <div class="header-left">
+        <a href="#tab-notes" class="brand-logo-wrap" id="brandLogoBtn" aria-label="NoteSnap Home">
+          <div class="brand-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <span class="brand-title">NoteSnap</span>
+        </a>
+        <span class="brand-pill">100% Offline</span>
+      </div>
+
+      <!-- Desktop Navigation Tabs -->
+      <nav class="desktop-nav" aria-label="Main Navigation">
+        <button class="nav-tab-btn active" data-target="snap" id="navDesktopSnap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          1. Notes
+        </button>
+        <button class="nav-tab-btn" data-target="sheet" id="navDesktopSheet">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          2. Revision Sheet
+        </button>
+        <button class="nav-tab-btn" data-target="quiz" id="navDesktopQuiz">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          3. Quiz Me
+        </button>
+        <button class="nav-tab-btn" data-target="history" id="navDesktopHistory">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Saved
+        </button>
+      </nav>
+
+      <div class="header-right">
+        <!-- Install PWA Button -->
+        <button class="install-app-btn" id="installAppBtn" title="Install NoteSnap PWA">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Install</span>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button class="header-action-btn" id="soundToggleBtn" aria-label="Toggle Sound Effects" title="Sound Effects">
+          <svg class="sound-icon-on" style="display:none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <svg class="sound-icon-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+
+        <!-- Light/Dark Theme Toggle -->
+        <button class="header-action-btn" id="themeToggleBtn" aria-label="Toggle Light and Dark Theme" title="Toggle Theme">
+          <svg class="theme-icon-sun" style="display:none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-container" id="mainContent">
+      <!-- ============================================================== -->
+      <!-- VIEW 1: Notes Input & Generator                                -->
+      <!-- ============================================================== -->
+      <section class="view-section active" id="view-snap" aria-labelledby="snapHeading">
+        <div class="hero-banner">
+          <h1 class="hero-title" id="snapHeading">
+            <span class="hero-title-word">Turn</span>
+            <span class="hero-title-word">Messy</span>
+            <span class="hero-title-word">Notes</span>
+            <span class="hero-title-word">Into</span>
+            <span class="hero-title-word hero-title-gradient">Gold.</span>
+          </h1>
+          <p class="hero-subtitle">
+            Extract the core sentences, highlight essential terminology, and quiz yourself with cloze flashcards.
+          </p>
+
+          <!-- Honest UX statement -->
+          <div class="honest-ux-callout">
+            <svg class="honest-ux-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Summaries pick the most important sentences from your notes; they don't rewrite them.</span>
+          </div>
+        </div>
+
+        <!-- Input Card Container -->
+        <div class="input-card-container tilt-card" id="inputCard">
+          <div class="input-top-bar">
+            <input type="text" class="sheet-title-input" id="sheetTitleInput" placeholder="Untitled Lecture / Topic..." aria-label="Sheet Title" />
+
+            <div class="input-actions-bar">
+              <!-- Sample Notes Dropdown -->
+              <div class="sample-notes-wrapper">
+                <button class="btn-secondary-sm" id="sampleNotesBtn" type="button" aria-expanded="false" aria-haspopup="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                  <span>Sample Notes</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="sample-menu-dropdown" id="sampleNotesMenu" role="menu">
+                  <!-- Populated dynamically from sampleNotes.js -->
+                </div>
+              </div>
+
+              <!-- Import .txt File -->
+              <button class="btn-secondary-sm" id="importFileBtn" type="button" title="Import text file">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Import .txt</span>
+              </button>
+              <input type="file" id="filePickerInput" accept=".txt,.text,.md" style="display:none;" />
+
+              <!-- Clear notes -->
+              <button class="btn-secondary-sm" id="clearNotesBtn" type="button" title="Clear text">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Notes Textarea with Drag & Drop Overlay -->
+          <div class="textarea-dropzone-wrap" id="dropzoneArea">
+            <textarea
+              class="notes-textarea"
+              id="notesTextarea"
+              placeholder="Paste raw class lecture notes, reading passages, or exam bullet points here... or drag and drop a .txt file"
+              aria-label="Notes Input"
+              spellcheck="false"
+            ></textarea>
+            
+            <div class="dropzone-overlay" id="dropzoneOverlay">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p style="margin-top: 0.5rem; font-weight: 600;">Drop your .txt note file here</p>
+            </div>
+          </div>
+
+          <!-- Bottom Control Bar -->
+          <div class="input-bottom-bar">
+            <div class="input-meta-info">
+              <span id="charCountDisplay">0 characters</span>
+              <span>•</span>
+              <span class="word-count-badge" id="wordCountDisplay">0 words</span>
+            </div>
+
+            <!-- Summary Length Slider Control -->
+            <div class="summary-length-selector" role="radiogroup" aria-label="Summary Length">
+              <button class="length-option-btn" data-length="short" role="radio" aria-checked="false" type="button">
+                Short (10%)
+              </button>
+              <button class="length-option-btn active" data-length="medium" role="radio" aria-checked="true" type="button">
+                Medium (25%)
+              </button>
+              <button class="length-option-btn" data-length="detailed" role="radio" aria-checked="false" type="button">
+                Detailed (40%)
+              </button>
+            </div>
+
+            <!-- Primary Generate Action Button -->
+            <button class="btn-snap-cta magnetic-btn" id="generateBtn" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Snap Notes</span>
+              <span class="snap-kbd-shortcut">Ctrl+↵</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 2: Revision Sheet Results                                 -->
+      <!-- ============================================================== -->
+      <section class="view-section" id="view-sheet" aria-labelledby="sheetResultsHeading">
+        <div class="results-header-bar">
+          <div>
+            <h2 class="sheet-main-title" id="sheetResultsHeading">Revision Sheet</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;" id="sheetSubtitleMeta">
+              Key sentences extracted and ranked by academic significance.
+            </p>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="results-export-actions">
+            <button class="btn-secondary-sm" id="exportTxtBtn" title="Download Plain Text">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>.txt</span>
+            </button>
+            <button class="btn-secondary-sm" id="exportMdBtn" title="Download Markdown">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="7 15 10 9 13 15"/><polyline points="14 15 17 9 20 15"/></svg>
+              <span>.md</span>
+            </button>
+            <button class="btn-secondary-sm" id="copyClipboardBtn" title="Copy to Clipboard">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+            <button class="btn-secondary-sm" id="printSheetBtn" title="Print or Save as PDF">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Print / PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Strip -->
+        <div class="stats-strip-container" id="statsStripArea">
+          <div class="stat-tile">
+            <span class="stat-counter" id="statCompression" data-target="0" data-suffix="%">0%</span>
+            <span class="stat-label">Condensed</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-counter" id="statTimeSaved" data-target="0" data-suffix="m">0m</span>
+            <span class="stat-label">Reading Time Saved</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-counter" id="statSentenceCount" data-target="0" data-suffix="">0</span>
+            <span class="stat-label">Key Sentences</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-counter" id="statWordsSaved" data-target="0" data-suffix="">0</span>
+            <span class="stat-label">Words Trimmed</span>
+          </div>
+        </div>
+
+        <!-- Key Terms Cloud -->
+        <div class="key-terms-section" id="keyTermsArea">
+          <div class="key-terms-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Top Key Concepts</span>
+          </div>
+          <div class="chips-cloud" id="keyTermsChipsCloud">
+            <!-- Dynamic keyword chips -->
+          </div>
+        </div>
+
+        <!-- The Structured Revision Document -->
+        <div class="revision-sheet-document" id="revisionSheetContainer">
+          <!-- Populated with detected headings and key highlighted sentences -->
+        </div>
+
+        <!-- Quiz Me Floating Bottom Bar -->
+        <div class="sheet-cta-bar">
+          <button class="btn-start-quiz-cta magnetic-btn" id="startQuizBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Quiz Me on This Sheet</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 3: Quiz Me (Active Recall & SRS)                          -->
+      <!-- ============================================================== -->
+      <section class="view-section" id="view-quiz" aria-labelledby="quizHeading">
+        <div style="margin-bottom: 1.5rem; text-align: center;">
+          <h2 id="quizHeading" style="font-size: 1.8rem; letter-spacing: -0.02em;">Active Recall Quiz</h2>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Test keywords extracted directly from your revision sheet.</p>
+        </div>
+
+        <div id="quizAppMount">
+          <!-- Handled by QuizController in quizView.js -->
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 4: Saved Revision Sheets                                  -->
+      <!-- ============================================================== -->
+      <section class="view-section" id="view-history" aria-labelledby="historyHeading">
+        <div id="historyAppMount">
+          <!-- Handled by HistoryController in historyView.js -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Mobile Thumb-Friendly Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+      <button class="mobile-nav-item active" data-target="snap" id="navMobileSnap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Snap</span>
+      </button>
+
+      <button class="mobile-nav-item" data-target="sheet" id="navMobileSheet">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Sheet</span>
+      </button>
+
+      <button class="mobile-nav-item" data-target="quiz" id="navMobileQuiz">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Quiz</span>
+      </button>
+
+      <button class="mobile-nav-item" data-target="history" id="navMobileHistory">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Saved</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
